@@ -1,0 +1,56 @@
+/**
+ * Middleware to protect routes with Bearer Token authentication.
+ * It checks for an 'Authorization' header with a specific token.
+ *
+ * @param {object} req - The Express request object.
+ * @param {object} res - The Express response object.
+ * @param {function} next - The next middleware function in the stack.
+ */
+const bearerTokenAuth = (req, res, next) => {
+    const authHeader = req.headers['authorization'];
+    const secretToken = 'mysecrettoken';
+
+    // Check if the Authorization header exists
+    if (!authHeader) {
+        return res.status(401).json({
+            status: "error",
+            message: "Authorization header is missing. Access denied."
+        });
+    }
+
+    // Split the header value to get the token part
+    const parts = authHeader.split(' ');
+
+    // Check if the header is in the format "Bearer <token>"
+    if (parts.length !== 2 || parts[0] !== 'Bearer') {
+        return res.status(401).json({
+            status: "error",
+            message: "Invalid Authorization header format. Format should be 'Bearer <token>'."
+        });
+    }
+
+    const token = parts[1];
+
+    // Check if the token matches the secret token
+    if (token === secretToken) {
+        // Token is valid, proceed to the next middleware or route handler
+        next();
+    } else {
+        // Token is invalid
+        return res.status(403).json({
+            status: "error",
+            message: "Invalid token. Access forbidden."
+        });
+    }
+};
+
+
+const requestLogger = (req, res, next) => {
+    const timestamp = new Date().toISOString();
+    console.log(`[${timestamp}] ${req.method} ${req.url}`);
+    // Pass control to the next middleware function in the stack
+    next();
+};
+
+module.exports = requestLogger;
+module.exports = bearerTokenAuth;
